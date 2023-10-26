@@ -1,2 +1,1 @@
-# crawly
-pokleok
+# Simple Web Crawler
