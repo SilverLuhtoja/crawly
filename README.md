@@ -5,6 +5,6 @@ Notes:
 2. npm test --  -t '#updatePages' - runs specific group of tests
 
 IF corrupted git:
-find .git/objects/ -type f -empty | xargs rm
-git fetch -p
-git fsck --full
+1. find .git/objects/ -type f -empty | xargs rm
+2. git fetch -p
+3. git fsck --full
