@@ -1,29 +1,33 @@
 const { test, expect } = require('@jest/globals');
-const { normalizeURL, getURLsFromHTML } = require('./crawl.js');
+const {
+  normalizeURL,
+  getURLsFromHTML,
+  isSameDomain,
+} = require('./crawl.js');
 
 describe('#normalizeURL ', () => {
-  test('Should return hostname + pathname', () => {
+  test('pathname with /', () => {
     let URL = 'https://blog.boot.dev/path/';
     let expected = 'blog.boot.dev/path';
     let result = normalizeURL(URL);
     expect(result).toEqual(expected);
   });
 
-  test('Should return hostname + pathname', () => {
+  test('pathname without /', () => {
     let URL = 'https://blog.boot.dev/path';
     let expected = 'blog.boot.dev/path';
     let result = normalizeURL(URL);
     expect(result).toEqual(expected);
   });
 
-  test('normalizeURL capitals', () => {
+  test('capitals', () => {
     const input = 'https://BLOG.boot.dev/path';
     const result = normalizeURL(input);
     const expected = 'blog.boot.dev/path';
     expect(result).toEqual(expected);
   });
 
-  test('should return null when no url given', () => {
+  test('empty URL', () => {
     let URL = '';
     let expected = null;
     let result = normalizeURL(URL);
@@ -69,5 +73,21 @@ describe('#getURLsFromHTML ', () => {
     const actual = getURLsFromHTML(inputBody, inputURL);
     const expected = [];
     expect(actual).toEqual(expected);
+  });
+});
+
+describe('#isSameDomain ', () => {
+  test('True', () => {
+    const baseDomain = 'https://blog.boot.dev';
+    const targetDomain = 'https://blog.boot.dev/next/page';
+    const actual = isSameDomain(baseDomain, targetDomain);
+    expect(actual).toEqual(true);
+  });
+
+  test('False', () => {
+    const baseDomain = 'https://blog.boot.dev';
+    const targetDomain = 'https://blog.anotherboot.dev/next/page';
+    const actual = isSameDomain(baseDomain, targetDomain);
+    expect(actual).toEqual(false);
   });
 });

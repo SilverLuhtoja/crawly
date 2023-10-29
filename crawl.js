@@ -1,30 +1,46 @@
 const { JSDOM } = require('jsdom');
 
-async function crawlPage(currentURL) {
-  console.log(`crawling ${currentURL}`);
+function isSameDomain(baseURL, currentURL) {
+  let baseDomain = new URL(baseURL);
+  let targetDomain = new URL(currentURL);
+  return baseDomain.hostname === targetDomain.hostname;
+}
+
+
+async function crawlPage(baseURL, currentURL, pages) {
+  if (!isSameDomain(baseURL, currentURL)) return pages;
+
+  let normalizedURL = normalizeURL(currentURL);
+  if (pages.hasOwnProperty(normalizedURL)) {
+    pages[normalizedURL] += 1;
+    return pages;
+  } else {
+    pages[normalizedURL] = currentURL === baseURL ? 0 : 1;
+  }
+
+  let htmlBody = '';
   try {
     let resp = await fetch(currentURL);
     if (resp.status > 399) {
       console.log(`Got HTTP error, status code: ${resp.status}`);
-      return;
+      return pages;
     }
-    const contentType = resp.headers.get('content-type')
+    const contentType = resp.headers.get('content-type');
     if (!contentType.includes('text/html')) {
-       console.log(`Got non-html response: ${contentType}`);
-       return;
+      console.log(`Got non-html response: ${contentType}`);
+      return pages;
     }
-
-    console.log(await resp.text());
-
-    // const myBlob = await resp.blob();
-    // let htmlPageContent = await myBlob.text();
-
-    // let links = getURLsFromHTML(htmlPageContent, currentURL);
-
-    // return links;
+    htmlBody = await resp.text();
   } catch (error) {
     console.error('There has been a problem with your fetch operation:', error);
   }
+
+  let nextURLs = getURLsFromHTML(htmlBody, baseURL);
+  for (const nextURL of nextURLs) {
+    pages = await crawlPage(baseURL, nextURL, pages);
+  }
+
+  return pages;
 }
 
 function getURLsFromHTML(htmlBody, baseURL) {
@@ -59,4 +75,5 @@ module.exports = {
   normalizeURL,
   getURLsFromHTML,
   crawlPage,
+  isSameDomain
 };
